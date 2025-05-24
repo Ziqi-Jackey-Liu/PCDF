@@ -27,7 +27,7 @@ pip install -r requirements.txt
 
 ```
 PCDF/
-├── Designed methods.py # Our proposed compression-decompression methods
+├── Designed methods.py # Our proposed the compression-decompression framework
 ├── Comparative methods.py # Baseline comparison methods
 ├── Data/ # Input datasets
 ├── Main.py # Entry point for running experiments
