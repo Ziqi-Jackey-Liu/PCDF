@@ -21,7 +21,7 @@ You can install all dependencies via:
 ```bash
 pip install -r requirements.txt
 
-📁 Project Structure:
+## 📁 Project Structure:
 PCDF/
 │
 ├── Designed methods.py
@@ -30,7 +30,7 @@ PCDF/
 ├── main.py    
 └── Readme.md
 
-🚀 How to Run
+## 🚀 How to Run
 To reproduce the experiments:
 1. Select and prepare your dataset (place it under the data/ directory).
 2. Modify relevant parameters in main.py according to the paper.
