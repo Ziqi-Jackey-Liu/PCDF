@@ -31,14 +31,14 @@ def train_stage2(data, parameter_alpha, remote_p, channel_):
     for trip_series in tqdm(range(len(normalized_data))):
         ad_finder = Adaptive_encoding.PeriodFinder(k=3)
 
-        # 对每个 trip 的两个部分分别找周期
+        # for two part of each trip, find their periods
         top_period1 = ad_finder.find_periods(normalized_data[trip_series][0])
         top_period2 = ad_finder.find_periods(normalized_data[trip_series][1])
 
-        # 将结果堆叠并添加到列表中
+        # stack results and append to list
         data_period1.append(top_period1[0])
         data_period2.append(top_period2[0])
-    # 将所有结果合并为一个张量
+    # combine all results into a tensor
     counter1 = [Counter(data_period1).most_common(1)[0][0], Counter(data_period1).most_common(1)[0][0]]
     counter2 = [Counter(data_period2).most_common(1)[0][0], Counter(data_period2).most_common(1)[0][0]]
     data_period1_c, data_period2_c, min_gcd = Adaptive_encoding.calculate_elementwise_lcm(counter1, counter2)
@@ -161,10 +161,10 @@ def train_stage2(data, parameter_alpha, remote_p, channel_):
         test_label=data_normalized_tensor[:, :, data_length * (remote_p + 4):data_length * (remote_p + 5)],
         pattern=None)
 
-    # # 收集到一个list
+    # # collect to a list
     # mem_list = [mem1, mem2, mem3, mem4, mem5, mem6, mem7, mem8, mem9, mem10]
     #
-    # # 拆分float和int
+    # # split the float and int into two arrays
     # float_array = np.array([item[0] for item in mem_list])
     # int_array = np.array([item[1] for item in mem_list])
     return ([loss_test1[0].item(), loss_test2[0].item(), loss_test3[0].item(), loss_test4[0].item(), loss_test5.item(),
@@ -188,14 +188,14 @@ def Ablation(data, parameter_alpha, remote_p, channel_):
     for trip_series in tqdm(range(len(normalized_data))):
         ad_finder = Adaptive_encoding.PeriodFinder(k=3)
 
-        # 对每个 trip 的两个部分分别找周期
+        # for two part of each trip, find their periods
         top_period1 = ad_finder.find_periods(normalized_data[trip_series][0])
         top_period2 = ad_finder.find_periods(normalized_data[trip_series][1])
 
-        # 将结果堆叠并添加到列表中
+        # stack results and append to list
         data_period1.append(top_period1[0])
         data_period2.append(top_period2[0])
-    # 将所有结果合并为一个张量
+    # combine all results into a tensor
     counter1 = [Counter(data_period1).most_common(1)[0][0], Counter(data_period1).most_common(1)[0][0]]
     counter2 = [Counter(data_period2).most_common(1)[0][0], Counter(data_period2).most_common(1)[0][0]]
     data_period1_c, data_period2_c, min_gcd = Adaptive_encoding.calculate_elementwise_lcm(counter1, counter2)

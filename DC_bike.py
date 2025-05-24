@@ -3,7 +3,7 @@ import glob
 
 
 def read(data_path, number, fold_factor):
-    # 读取数据
+    # read data
     # df = pd.read_csv(data_path)
     data_path = glob.glob(data_path)
 
@@ -12,43 +12,43 @@ def read(data_path, number, fold_factor):
         df = pd.read_csv(path, usecols=['Start station number', 'Start date'])
         dfs.append(df)
 
-    # 合并所有 DataFrame
+    # merge all DataFrame
     df = pd.concat(dfs, ignore_index=True)
 
-    # 只保留需要的两列
+    # keep only the relevant columns
     df = df[['Start station number', 'Start date']]
 
-    # 转换时间格式
+    # covert time format
     df['Start date'] = pd.to_datetime(df['Start date'])
 
-    # 提取日期（按天）
-    df['date'] = df['Start date'].dt.date  # 或 .dt.floor('D')
+    # extract date (by day)
+    df['date'] = df['Start date'].dt.date  # or .dt.floor('D')
 
-    # 分组计数
+    # Group counting
     grouped = df.groupby(['Start station number', 'date']).size().reset_index(name='ride_count')
 
-    # 生成透视表（行是站点编号，列是日期，值是骑行数量）
+    # Generate a pivot table (rows are station IDs, columns are dates, values are ride counts)
     pivot = grouped.pivot(index='Start station number', columns='date', values='ride_count')
 
-    # 填补缺失值为 0，并转换为整数
+    # fill na with 0，covert to int
     pivot = pivot.fillna(0).astype(int)
 
-    # 转换为 NumPy 数组
+    # covert to NumPy array
     result_array = pivot.values
 
-    # 计算每行的和
+    # Compute the sum of each row
     row_sums = result_array.sum(axis=1)
 
-    # 使用布尔索引过滤掉行和小于 100 的行
+    # Use boolean indexing to filter out rows with a row sum less than 100
     filtered_matrix = result_array[row_sums >= number]
 
     num_rows, num_cols = filtered_matrix.shape
 
-    # 保证列数能整除 fold_factor
+    # Ensure the number of columns is divisible by fold_factor
     usable_cols = (num_cols // fold_factor) * fold_factor
     matrix_trimmed = filtered_matrix[:, :usable_cols]
 
-    # reshape 和变换
+    # reshape and transpose
     reshaped = matrix_trimmed.reshape(num_rows, -1, fold_factor)  # -> (num_rows, new_cols, fold_factor)
     reshaped = reshaped.transpose(0, 2, 1)  # -> (num_rows, fold_factor, new_cols)
     result = reshaped.reshape(num_rows * fold_factor, -1)  # -> (num_rows * fold_factor, new_cols)

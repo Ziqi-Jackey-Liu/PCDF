@@ -22,7 +22,7 @@ class PatchTSMixerForPrediction(nn.Module):
         patch_stride = 8
         num_patch = ((context_length - patch_length) // patch_stride) + 1
 
-        # 分布输出设置
+        # set distribution_output
         self.model = PatchTSMixerModel(context_length, in_features, out_features, num_input_channels=in_features,
                                        patch_length=patch_length, patch_stride=patch_stride,
                                        d_model=d_model, num_patch=num_patch)
@@ -39,7 +39,7 @@ class PatchTSMixerForPrediction(nn.Module):
         output_hidden_states: bool = False,
         return_loss: bool = True,
     ):
-        # 选择 loss 函数
+        # select loss function
         past_values = past_values.permute(0, 2, 1)
         if self.loss_type == "mse":
             loss_fn = nn.MSELoss(reduction="mean")
@@ -48,13 +48,13 @@ class PatchTSMixerForPrediction(nn.Module):
         else:
             raise ValueError("Invalid loss function: Allowed values: mse and nll")
 
-        # 模型输出
+        # model output
         last_hidden_state, hidden_states, patch_input, mask, loc, scale = self.model(
             past_values,
             observed_mask=observed_mask,
             output_hidden_states=output_hidden_states
         )
-        # head -> 预测值 (batch_size, prediction_length, num_channels)
+        # head -> predict value (batch_size, prediction_length, num_channels)
         y_hat = self.head(last_hidden_state)
 
         loss_val = None
@@ -70,7 +70,7 @@ class PatchTSMixerForPrediction(nn.Module):
                 loss_val = loss_fn(distribution, future_values)
                 loss_val = weighted_average(loss_val)
         else:
-            # 反缩放
+            # reverse scaling
             y_hat = y_hat * scale + loc
             if future_values is not None and return_loss:
                 loss_val = loss_fn(y_hat, future_values)
@@ -80,7 +80,7 @@ class PatchTSMixerForPrediction(nn.Module):
 
     def generate(self, past_values: torch.Tensor, observed_mask = None):
         """
-        生成预测样本 (batch_size, num_samples, prediction_length, num_input_channels)
+        generate prediction samples (batch_size, num_samples, prediction_length, num_input_channels)
         """
         num_parallel_samples = self.num_parallel_samples
 

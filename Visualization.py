@@ -7,14 +7,14 @@ def t_sne(data):
     tsne = TSNE(n_components=2, perplexity=30, random_state=42)
     data_2d = tsne.fit_transform(data)
 
-    # 绘制散点图
+    # draw scatter plot
     plt.figure(figsize=(8, 6))
     plt.scatter(data_2d[:, 0], data_2d[:, 1], alpha=0.7, cmap='viridis')
 
     plt.xlim(0, 5)
     plt.ylim(0, 5)
 
-    # 添加标题和坐标轴标签
+    # add title and axis labels
     plt.title("t-SNE Dimensionality Reduction", fontsize=14)
     plt.xlabel("t-SNE Component 1")
     plt.ylabel("t-SNE Component 2")
@@ -24,7 +24,7 @@ def t_sne(data):
 
 
 def scatter():
-    # 你提供的数据（结构为 [dataset][step][method]）
+    # your data (structure is [dataset][step][method])
     # datasets = {
     #     'NYC taxi': [
     #         [0.000459, 0.000397, 0.000340, 0.000716, 0.000310, 0.002464],
@@ -160,34 +160,34 @@ def scatter():
         ]
     }
 
-    # ========== 基本设置 ==========
+    # ========== Basic setting ==========
     methods = ['PCDF-MLP', 'TSMixer', 'PCDF-Trans', 'PatchTST', 'PCDF-Linear', 'HDMixer']
     steps = [5, 10, 20, 30, 40]
     step_positions = [0, 1, 2, 3, 4]
 
-    # 自定义颜色
+    # self-defined colors
     custom_colors = ['#501a0e', '#0b323f', '#a23624', '#297862', '#17789b', '#c67637']
 
-    # ========== 预处理数据 ==========
+    # ========== Preprocess data ==========
     method_step_data = {m: [[] for _ in steps] for m in methods}
     for dataset in datasets.values():
         for i, row in enumerate(dataset):
             for j, method in enumerate(methods):
                 method_step_data[method][i].append(row[j])
 
-    # 分组
+    # grouping
     group1 = ['PCDF-MLP', 'TSMixer']
     group2 = ['PCDF-Trans', 'PatchTST']
     group3 = ['PCDF-Linear', 'HDMixer']
     group_list = [group1, group2, group3]
 
-    # 创建三子图
+    # create three subplots
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(21, 4), dpi=600)
     axes = [ax1, ax2, ax3]
 
-    width = 0.18 # box宽度
+    width = 0.18 # box width
 
-    # 遍历每组绘图
+    # loop each group and draw
     for ax, group in zip(axes, group_list):
         offsets = np.linspace(-width * len(group) / 2, width * len(group) / 2, len(group), endpoint=False)
         custom_labels = []
@@ -211,19 +211,19 @@ def scatter():
                 )
                 medians.append(np.median(data))
 
-            # 保存 plot 句柄
+            # save plot
             line, = ax.plot(step_positions, medians, marker='o', color=color)
             handles.append(line)
 
-            # 添加点上数值标签
+            # add value label on top of points
             for i, val in enumerate(medians):
                 # x_pos = step_positions[i] + offsets[m_idx]
                 x_pos = step_positions[i]
                 ax.text(x_pos+0.15, val-0.12*val, f'{val:.1e}', fontsize=14, ha='left', va='bottom')
 
-            custom_labels.append(method)  # 只保留方法名作为图例
+            custom_labels.append(method)  # only save method name for legend
 
-        # 子图设置
+        # subplot setting
         ax.set_yscale('log')
         ax.set_xlabel("Number of channel", fontsize=18)
         ax.set_xticks(step_positions)
@@ -231,7 +231,7 @@ def scatter():
         ax.grid(True, linestyle='--', alpha=0.5)
         ax.set_title(' + '.join(group), fontsize=18)
 
-        # # 设置图例位置（根据 group）
+        # # set legend location (by group)
         # if group == ['PSO-MLP', 'TSMixer']:
         #     legend_loc = 'lower left'
         # elif group == ['PSO-Trans', 'PatchTST']:
@@ -239,13 +239,13 @@ def scatter():
         # else:
         #     legend_loc = 'lower right'
 
-        # 正确设置 legend 显示颜色 ✅
+        # set legend display color ✅
         ax.legend(handles, custom_labels, fontsize=18, loc='upper left', frameon=True)
 
-    # 左图设置 y 轴标签
+    # left plot, set y axis label
     ax1.set_ylabel("Runtime", fontsize=18)
 
-    # 调整整体布局
+    # adjust the overall layout
     plt.tight_layout(rect=(0, 0, 1, 1))
     plt.show()
 

@@ -70,22 +70,22 @@ class Model(nn.Module):
 
     @staticmethod
     def auxiliary_period(batch_size, seq_len, device):
-        # 固定的起始时间（你可以换成任何时间）
+        # fix initial time (you can change to any time)
         base_date = datetime(2023, 3, 1, 1, 0)
 
-        # 创建一段递增的日期列表
+        # create a list of incremental dates
         date_list = [base_date + timedelta(hours=i) for i in range(seq_len)]
 
-        # 提取时间特征：month, day, weekday, hour, minute
+        # extract time features: month, day, weekday, hour, minute
         time_features = [
             [dt.month, dt.day, dt.weekday(), dt.hour, dt.minute // 15]
             for dt in date_list
         ]
 
-        # 转为 tensor，形状 (seq_len, 5)
+        # convert tensor, with shape of (seq_len, 5)
         time_tensor = torch.tensor(time_features).long().to(device)
 
-        # 扩展成 (batch_size, seq_len, 5)
+        # expand to (batch_size, seq_len, 5)
         x_mark_enc = time_tensor.unsqueeze(0).repeat(batch_size, 1, 1)
         return x_mark_enc
 

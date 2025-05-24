@@ -36,9 +36,9 @@ class TimeSeriesCNN(nn.Module):
     def __init__(self, sequence_length, num_classes, compress_channel):
         """
         Args:
-            # input_channels (int): 输入的通道数（例如特征维度数）。
-            sequence_length (int): 时间序列长度。
-            num_classes (int): 预测任务的输出类别数量。
+            # input_channels (int): Number of input channels (e.g., feature dimensions).
+            sequence_length (int): Length of the time series.
+            num_classes (int): Number of output classes for the prediction task.
         """
         super(TimeSeriesCNN, self).__init__()
         # self.num_splits = sequence_length // compress_period
@@ -48,19 +48,19 @@ class TimeSeriesCNN(nn.Module):
         # self.adaptation1 = Adaptive_encoding.PeriodAdaptation(compress_size=compress_period)
         # self.adaptation2 = Adaptive_encoding.PeriodAdaptationOutput(compress_size=num_classes)
 
-        # 第一层卷积和池化
+        # 1st layer of convolution and pooling
         self.conv1 = nn.Conv1d(in_channels=compress_channel, out_channels=compress_channel, kernel_size=3, padding=1)
         self.relu1 = nn.ReLU()
 
-        # 第二层卷积和池化
+        # 2nd layer of convolution and pooling
         self.conv2 = nn.Conv1d(in_channels=compress_channel, out_channels=compress_channel, kernel_size=3, padding=1)
         self.relu2 = nn.ReLU()
 
         self.conv3 = nn.Conv1d(in_channels=compress_channel, out_channels=compress_channel, kernel_size=3, padding=1)
         self.relu3 = nn.ReLU()
 
-        # Flatten 层前的全连接
-        flattened_size = sequence_length  # 两次池化后，长度减少为原来的1/4
+        # Fully connected layer
+        flattened_size = sequence_length  # after two pooling, the length is reduced to 1/4 of the original
         self.fc1 = nn.Linear(flattened_size, 48)
         self.relu3 = nn.ReLU()
         self.fc2 = nn.Linear(48, num_classes)
@@ -70,10 +70,10 @@ class TimeSeriesCNN(nn.Module):
         Forward pass of the CNN.
 
         Args:
-            x (torch.Tensor): 输入形状为 (batch_size, input_channels, sequence_length)。
+            x (torch.Tensor): input shape (batch_size, input_channels, sequence_length).
 
         Returns:
-            torch.Tensor: 输出形状为 (batch_size, num_classes)。
+            torch.Tensor: output shape (batch_size, num_classes).
         """
         x = self.conv1(x)
         x = self.relu1(x)
@@ -96,9 +96,9 @@ class TimeSeriesCNNCom(nn.Module):
     def __init__(self, sequence_length, num_classes, compress_period):
         """
         Args:
-            # input_channels (int): 输入的通道数（例如特征维度数）。
-            sequence_length (int): 时间序列长度。
-            num_classes (int): 预测任务的输出类别数量。
+            # input_channels (int): Number of input channels (e.g., feature dimensions).
+            sequence_length (int): Length of the time series.
+            num_classes (int): Number of output classes for the prediction task.
         """
         super(TimeSeriesCNNCom, self).__init__()
         self.num_splits = sequence_length // compress_period
@@ -108,16 +108,16 @@ class TimeSeriesCNNCom(nn.Module):
         self.adaptation1 = Adaptive_encoding.PeriodAdaptation(compress_size=compress_period)
         self.adaptation2 = Adaptive_encoding.PeriodAdaptationOutput(compress_size=num_classes)
 
-        # 第一层卷积和池化
+        # 1st layer of convolution and pooling
         self.conv1 = nn.Conv1d(in_channels=1, out_channels=1, kernel_size=3, padding=1)
         self.relu1 = nn.ReLU()
 
-        # 第二层卷积和池化
+        # 2nd layer of convolution and pooling
         self.conv2 = nn.Conv1d(in_channels=1, out_channels=1, kernel_size=3, padding=1)
         self.relu2 = nn.ReLU()
 
-        # Flatten 层前的全连接
-        flattened_size = sequence_length  # 两次池化后，长度减少为原来的1/4
+        # fully connected layer
+        flattened_size = sequence_length  # after two pooling, the length is reduced to 1/4 of the original
         self.fc1 = nn.Linear(flattened_size, 48)
         self.relu3 = nn.ReLU()
         self.fc2 = nn.Linear(48, num_classes)
@@ -127,10 +127,10 @@ class TimeSeriesCNNCom(nn.Module):
         Forward pass of the CNN.
 
         Args:
-            x (torch.Tensor): 输入形状为 (batch_size, input_channels, sequence_length)。
+            x (torch.Tensor): input shape (batch_size, input_channels, sequence_length).
 
         Returns:
-            torch.Tensor: 输出形状为 (batch_size, num_classes)。
+            torch.Tensor: output shape (batch_size, num_classes).
         """
         x, _ = self.period_adaptation(x)
         x = self.conv1(x)
@@ -157,7 +157,7 @@ class TimeSeriesCNNCom(nn.Module):
             split_x = (split_x - split_x_m) / split_x_v
             split_results.append(split_x)
 
-        # 重新拼接处理后的分段
+        # reconcatenate the processed segments
         x = torch.cat(split_results, dim=2)
         return x, split_x_m
 
@@ -172,7 +172,7 @@ class TimeSeriesCNNCom(nn.Module):
         #     split_results.append(split_x)
         #     split_x_m_s.append(split_x_m)
         #
-        # # 重新拼接处理后的分段
+        # # reconcatenate the processed segments
         # x = torch.cat(split_results, dim=1)
         # split_x_m_s = torch.cat(split_x_m_s, dim=1)
         split_x_m, split_x_v = self.adaptation2(x)
@@ -206,9 +206,9 @@ class TimeSeriesCNNWhole(nn.Module):
     def __init__(self, sequence_length, num_classes, compress_period, mode, t_pattern, channel, ablation):
         """
         Args:
-            # input_channels (int): 输入的通道数（例如特征维度数）。
-            sequence_length (int): 时间序列长度。
-            num_classes (int): 预测任务的输出类别数量。
+            # input_channels (int): Number of input channels (e.g., number of feature dimensions).
+            sequence_length (int): Length of the time series.
+            num_classes (int): Number of output classes for the prediction task.
         """
         super(TimeSeriesCNNWhole, self).__init__()
         self.ablation = ablation
@@ -229,16 +229,16 @@ class TimeSeriesCNNWhole(nn.Module):
         self.adaptation1 = Adaptive_encoding.PeriodAdaptation(compress_size=compress_period)
         self.adaptation2 = Adaptive_encoding.PeriodAdaptationOutput(compress_size=num_classes)
 
-        # 第一层卷积和池化
+        # 1st layer of convolution and pooling
         self.conv1 = nn.Conv1d(in_channels=1, out_channels=1, kernel_size=3, padding=1)
         self.relu1 = nn.ReLU()
 
-        # 第二层卷积和池化
+        # 2nd layer of convolution and pooling
         self.conv2 = nn.Conv1d(in_channels=1, out_channels=1, kernel_size=3, padding=1)
         self.relu2 = nn.ReLU()
 
-        # Flatten 层前的全连接
-        flattened_size = sequence_length  # 两次池化后，长度减少为原来的1/4
+        # fully connected layer
+        flattened_size = sequence_length  # after two pooling, the length is reduced to 1/4 of the original
         self.fc1 = nn.Linear(flattened_size, num_classes)
         self.relu3 = nn.ReLU()
         self.fc2 = nn.Linear(num_classes, num_classes)
@@ -295,13 +295,13 @@ class TimeSeriesCNNWhole(nn.Module):
         Forward pass of the CNN.
 
         Args:
-            x (torch.Tensor): 输入形状为 (batch_size, input_channels, sequence_length)。
+            x (torch.Tensor): input shape: (batch_size, input_channels, sequence_length).
 
         Returns:
-            torch.Tensor: 输出形状为 (batch_size, num_classes)。
+            torch.Tensor: output shape: (batch_size, num_classes).
         """
         # compress
-        device = next(self.parameters()).device  # 自动获取模型设备
+        device = next(self.parameters()).device  # obtain device of the model
         x = x.to(device)
         x_label = 0
 
@@ -309,15 +309,15 @@ class TimeSeriesCNNWhole(nn.Module):
             # x = self.period_adaptation(x)
             mask_ortho_key = self.ortho_key * self.mask
 
-            num_loops = x.shape[1]  # 获取第二个维度
-            x_sum = None  # 用于存储累加结果
+            num_loops = x.shape[1]  # obtain the second dimension
+            x_sum = None  # save the cumulative result
             for i in range(num_loops):
                 x_temp = self.period_compress(x[:, i, :].unsqueeze(1),
-                                              mask_ortho_key)  # 处理 (batch_size, sequence_length)
+                                              mask_ortho_key)  # process (batch_size, sequence_length)
                 if x_sum is None:
-                    x_sum = x_temp  # 初始化 x_sum
+                    x_sum = x_temp  # initialize x_sum
                 else:
-                    x_sum = x_sum + x_temp  # 按元素相加
+                    x_sum = x_sum + x_temp  # element-wise addition
             x_label = x_sum[:, :, -self.num_classes:]
             x = x_sum[:, :, 0:self.sequence_length]
 
@@ -371,7 +371,7 @@ class TimeSeriesCNNWhole(nn.Module):
             # mask_de_ortho_key = self.de_ortho_key * self.mask1
             x = torch.matmul(x, self.ortho_key)
             x = x / self.de_ortho_key
-            # self.dropout = nn.Dropout(p=0.1)  # 30% 随机丢弃
+            # self.dropout = nn.Dropout(p=0.1)  # 30% random drop
 
             # decompress
             x, x_ = self.decode(x.unsqueeze(1))
@@ -410,7 +410,7 @@ class TimeSeriesCNNWhole(nn.Module):
             split_x = (split_x - split_x_m) / (split_x_v + 1e-6)
             split_results.append(split_x)
 
-        # 重新拼接处理后的分段
+        # reconcatenate the processed segments
         x = torch.cat(split_results, dim=2)
         return x, split_x_m
 
@@ -425,7 +425,7 @@ class TimeSeriesCNNWhole(nn.Module):
         #     split_results.append(split_x)
         #     split_x_m_s.append(split_x_m)
         #
-        # # 重新拼接处理后的分段
+        # # reconcatenate the processed segments
         # x = torch.cat(split_results, dim=1)
         # split_x_m_s = torch.cat(split_x_m_s, dim=1)
         split_x_m, split_x_v = self.adaptation2(x)
@@ -434,9 +434,10 @@ class TimeSeriesCNNWhole(nn.Module):
 
 
 def js_divergence(p, q):
+    """calculate the JS divergence"""
     p = function.softmax(p, dim=-1)
     q = function.softmax(q, dim=-1)
-    """计算 JS 散度"""
+    
     m = torch.div(torch.add(q, p), torch.tensor(2))
     return torch.add(0.5 * function.kl_div(function.log_softmax(p, dim=-1), m, reduction='batchmean'),
                      0.5 * function.kl_div(function.log_softmax(q, dim=-1), m, reduction='batchmean'))
@@ -472,28 +473,28 @@ class Trainer:
         optimizer_c = optim.Adam(self.model.parameters(), lr=self.learning_rate)
         loss = []
         start_train = time.time()
-        self.model.train()  # 设置模型为训练模式
+        self.model.train()  # set model to training mode
         for epoch in range(self.epochs):
-            # 前向传播
+            # forward propagation
             if pattern is None:
                 outputs = self.model(train_data)
                 loss = mse_loss(outputs, train_label)
             elif pattern == 'hdm_mixer':
                 outputs, patch_loss = self.model(train_data)
                 loss = mse_loss(outputs, train_label) + patch_loss
-            # 反向传播
+            # backpropagation
             optimizer_c.zero_grad()
             loss.backward()
             optimizer_c.step()
 
-            # 打印每个 epoch 的损失
+            # Print the loss for each epoch
             print(f"Epoch [{epoch + 1}/{self.epochs}], Loss: {loss.item():.4f}")
 
         end_train = time.time()
         training_time = end_train - start_train
         outputs = []
         start_test = time.time()
-        self.model.eval()  # 设置模型为评估模式
+        self.model.eval()  # set model to evaluation mode
         if pattern is None:
             outputs = self.model(test_data)
         elif pattern == 'hdm_mixer':
@@ -504,7 +505,7 @@ class Trainer:
         # print(test_label.shape)
         loss = mse_loss(outputs, test_label)
 
-        # 内存统计
+        # Memory calculation
         torch.cuda.empty_cache()
         torch.cuda.synchronize()
         reset_gpu_peak()
@@ -518,12 +519,12 @@ class Trainer:
         test_end_gpu = get_gpu_mem()
         test_peak_gpu = get_gpu_peak_mem()
 
-        # # 差值计算
+        # # calculate the difference
         # cpu_mem_diff = test_end_cpu - test_start_cpu
         # gpu_allocated_diff = test_end_gpu[0] - test_start_gpu[0]
         # gpu_reserved_diff = test_end_gpu[1] - test_start_gpu[1]
         #
-        # # 打印测试时使用的资源
+        # print the memory usage on test stage
         # print("=" * 50)
         # print("📊 Test Stage Memory Usage:")
         # print(f"CPU Before Test: {test_start_cpu:.2f} MB -> After: {test_end_cpu:.2f} MB")
@@ -532,11 +533,11 @@ class Trainer:
         # print(f"🚀 GPU Peak Allocated: {test_peak_gpu[0]:.2f} MB, Reserved: {test_peak_gpu[1]:.2f} MB")
         # print("=" * 50)
 
-        # 看文件大小
+        # check the file size
         torch.save(self.model.state_dict(), "temp_model.pth")
         file_size = os.path.getsize("temp_model.pth") / (1024 ** 2)  # MB
         print(f"Model file size: {file_size:.2f} MB")
-        # 删除临时文件
+        # delete temp file
         os.remove("temp_model.pth")
         total_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
         return loss, outputs, [np.array(training_time).item(), np.array(testing_time).item()], [file_size,
@@ -566,9 +567,9 @@ class TrainerCom:
         # optimizer_c = optim.Adam(prediction_model.parameters(), lr=self.learning_rate)
         optimizer_d = optim.Adam(self.model.parameters(), lr=self.learning_rate)
         # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_d, T_max=self.epochs)
-        best_loss = float('inf')  # 初始设置为无穷大
-        best_model_state = None  # 用于保存最优模型参数
-        self.model.train()  # 设置模型为训练模式
+        best_loss = float('inf')  # initially set to infinity
+        best_model_state = None  # save the best model parameters
+        self.model.train()  # set model to training mode
         start_train = time.time()
         for epoch in range(self.epochs):
             outputs, period_mean, period_v, period_f = self.model(train_data)
@@ -584,7 +585,7 @@ class TrainerCom:
             # loss2 = loss_n
             # if loss2.item() < best_loss:
             #     best_loss = loss2.item()
-            # 反向传播
+            # backpropagation
             optimizer_d.zero_grad()
             loss2.backward()
             self.relative_global_clipping(self.model, rho=0.15)
@@ -596,7 +597,7 @@ class TrainerCom:
         end_train = time.time()
         training_time = end_train - start_train
         start_test = time.time()
-        self.model.eval()  # 设置模型为评估模式
+        self.model.eval()  # set model to evaluation mode
         outputs, period_mean, period_v, period_f = self.model(test_data)
         end_test = time.time()
         testing_time = end_test - start_test
@@ -610,7 +611,7 @@ class TrainerCom:
         torch.save(self.model.state_dict(), "temp_model.pth")
         file_size = os.path.getsize("temp_model.pth") / (1024 ** 2)  # MB
         print(f"Model file size: {file_size:.2f} MB")
-        # 删除临时文件
+        # delete temp file
         os.remove("temp_model.pth")
         total_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
         return loss, outputs, [np.array(training_time).item(), np.array(testing_time).item()], [file_size,
@@ -638,13 +639,13 @@ class TrainerCom:
                 total_norm += param_norm.item() ** 2
         total_norm = total_norm ** 0.5
 
-        # 计算总参数范数
+        # calculate the total parameter norm
         weight_norm = sum((p.data.norm(2) ** 2 for p in model.parameters())) ** 0.5
 
-        # 计算裁剪阈值
+        # calculate the clipping threshold
         clip_threshold = rho * weight_norm
 
-        # 裁剪比例
+        # clip_coef
         clip_coef = min(1.0, clip_threshold / (total_norm + 1e-6))
 
         for p in model.parameters():
