@@ -26,7 +26,7 @@ pip install -r requirements.txt
 ## 📁 Project Structure:
 
 PCDF/
-├── Designed methods.py # Our proposed compression-decompression methods
+├── Designed methods.py # Our proposed compression-decompression methods \\
 ├── Comparative methods.py # Baseline comparison methods
 ├── data/ # Input datasets
 ├── main.py # Entry point for running experiments
