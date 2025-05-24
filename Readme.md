@@ -29,8 +29,8 @@ pip install -r requirements.txt
 PCDF/
 ├── Designed methods.py # Our proposed compression-decompression methods
 ├── Comparative methods.py # Baseline comparison methods
-├── data/ # Input datasets
-├── main.py # Entry point for running experiments
+├── Data/ # Input datasets
+├── Main.py # Entry point for running experiments
 └── README.md # Project documentation
 ```
 
