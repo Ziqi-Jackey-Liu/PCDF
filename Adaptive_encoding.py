@@ -7,18 +7,18 @@ import torch
 class CyclicVectorGenerator:
     def __init__(self, factor):
         """
-        初始化向量生成器。
-        :param factor: 每个周期中元素之间的比例因子。
+        # Initialize the vector generator.
+        # :param factor: The ratio factor between elements in each cycle.
         """
         self.factor = factor
 
     @staticmethod
     def generate_periodic_vector(period, num_vectors):
         """
-        生成单个周期的向量，元素为随机大小，归一化为1。
+        # Generate a single cycle vector with elements of random sizes, normalized to 1.
         """
-        # periodic_vector = torch.randn(period)  # 单周期内元素为随机大小
-        # periodic_vector /= periodic_vector.sum()  # 归一化
+        # periodic_vector = torch.randn(period)  # Elements within a single cycle are of random sizes
+        # periodic_vector /= periodic_vector.sum()  # Normalize to ensure the sum is 1
 
         random_matrix = torch.randn(period, num_vectors)
         orthogonal_vectors, _ = torch.linalg.qr(random_matrix, mode='reduced')
@@ -26,23 +26,23 @@ class CyclicVectorGenerator:
 
     def generate_final_vector(self, length, period, num_vectors):
         """
-        生成目标长度的向量，满足每个周期的元素值比前一个周期小factor倍。
+        # Generate a vector of the target length, where the element values in each cycle are smaller than those in the previous cycle by a factor.
         """
         periodic_vector = self.generate_periodic_vector(period, num_vectors)
         vectors = []
 
-        # 循环拼接周期，按照比例递减
+        # Cycles are concatenated in a loop, decreasing proportionally
         current_vector = periodic_vector.clone()
         total_length = 0
         while total_length < length:
             vectors.append(current_vector)
             total_length += period
-            current_vector = current_vector * self.factor  # 缩小m倍
+            current_vector = current_vector * self.factor  # Scale down by a factor of m
 
-        # 拼接所有完整周期
-        final_vector = torch.cat(vectors, dim=1)[:, :length]  # 截取到目标长度
+        # Concatenate all complete cycles
+        final_vector = torch.cat(vectors, dim=1)[:, :length]  # Trim to the target length
 
-        # # 归一化以确保所有元素和为1
+        # # Normalize to ensure the sum of all elements is 1
         # final_vector /= final_vector.sum(dim=1, keepdim=True)
         # final_vector = final_vector - final_vector.mean(dim=1, keepdim=True)
         return periodic_vector, final_vector
@@ -55,24 +55,24 @@ class CyclicVectorGeneratorD(nn.Module):
     @staticmethod
     def generate_circular_periodic_vector(period):
         """
-        通过两次 FFT 生成正交的循环矩阵。
+        # Generate an orthogonal circulant matrix through two FFTs.
         """
-        # 生成随机向量
+        # Generate a random vector
         random_vector = torch.randn(period, dtype=torch.complex64)
 
-        # 第一次 FFT
+        # First FFT
         random_vector_fft = torch.fft.fft(random_vector)
 
-        # 调整模长为 1
+        # Normalize the vector to have a magnitude of 1
         random_vector_fft_normalized = random_vector_fft / torch.abs(random_vector_fft)
 
-        # 反向 FFT 得到正交循环矩阵的第一列
+        # Inverse FFT to obtain the first column of the orthogonal circulant matrix
         c_prime = torch.fft.ifft(random_vector_fft_normalized).real
 
-        # 创建正交的循环矩阵（每一行都是一个周期向量）
+        # Create an orthogonal circulant matrix (each row is a cyclic vector)
         cyclic_matrix = torch.stack([torch.roll(c_prime, i) for i in range(period)])
 
-        # 转置矩阵，使每一行是一个正交向量
+        # Transpose the matrix so that each row is an orthogonal vector
         # cyclic_matrix = (cyclic_matrix - cyclic_matrix.min()) / (cyclic_matrix.max() - cyclic_matrix.min())
         return cyclic_matrix.T
 
@@ -95,20 +95,20 @@ class CircularConvolution1(nn.Module):
 
     def forward(self, key, input_x, factor):
         none = self.none
-        n = input_x.size(0)  # 输入向量的长度
-        m = key.size(0)      # 卷积核的长度
+        n = input_x.size(0)  # Length of the input vector
+        m = key.size(0)      # Length of the convolution kernel
 
-        # 初始化结果张量，形状与 input_x 相同
+        # Initialize the result tensor with the same shape as input_x
         result = torch.zeros_like(input_x)
         key_values = []
 
-        # 遍历每个元素位置进行循环卷积
+        # Perform circular convolution by iterating over each element position
         for j in range(n):
             temp_key = []
             for k in range(m):  # input_x.size(0)
                 result[j] += input_x[k] * key[(j - k) % m]
                 temp_key.append(key[(j - k) % m].item())
-            # key = torch.multiply(key, factor)  # 每次卷积后放大 k 倍
+            # key = torch.multiply(key, factor)  # Amplify by a factor of k after each convolution
             key_values.append(temp_key)
         return result, torch.tensor(key_values)
 
@@ -120,21 +120,21 @@ class CircularConvolution(nn.Module):
 
     def forward(self, key, input_x, factor):
         none = self.none
-        n = input_x.size(0)  # 输入向量的长度
-        m = key.size(0)      # 卷积核的长度
+        n = input_x.size(0)  # Length of the input vector
+        m = key.size(0)      # Length of the convolution kernel
 
-        # 初始化结果张量，形状与 input_x 相同
+        # Initialize the result tensor with the same shape as input_x
         result = torch.zeros_like(input_x)
         key_values = []
 
-        # 遍历每个元素位置进行循环卷积
+        # Perform circular convolution by iterating through each element position
         for j in range(n):
             temp_key = []
-            for k in range(m):  # 遍历卷积核的元素
+            for k in range(m):  # Iterate over the elements of the convolution kernel
                 result[j] += input_x[(j + k) % n] * key[k]
                 temp_key.append(key[k].item())
             key_values.append(temp_key)
-            key = torch.multiply(key, factor)  # 每次卷积后放大 k 倍
+            key = torch.multiply(key, factor)  # Amplify by a factor of k after each convolution
         # for k in range(input_x.size(0)):  # input_x.size(0)
         #     result[j] += input_x[k] * key[(j + input_x.size(0) - k) % key.size(0)]
         #     key_index = (j + input_x.size(0) - k) % key.size(0)
@@ -162,8 +162,8 @@ class CircularCorrelation(nn.Module):
             torch.Tensor: Result of circular convolution of shape (1, n)
         """
         self.none = None
-        n = input_x.size(0)  # 输入向量的长度
-        m = key.size(0)  # 卷积核的长度
+        n = input_x.size(0)  # Length of the input vector
+        m = key.size(0)  # Length of the convolution kernel
         key_values = []
 
         result = torch.zeros_like(input_x)
@@ -257,31 +257,31 @@ class PeriodFinder:
 class FullyConnectedModel(nn.Module):
     def __init__(self, input_size, output_size):
         """
-        初始化全连接网络。
+        Initialize the fully connected network.
 
-        参数：
-        input_size (int): 输入层的大小。
-        output_size (int): 输出层的大小。
+        Parameters:
+        input_size (int): Size of the input layer.
+        output_size (int): Size of the output layer.
         """
         super(FullyConnectedModel, self).__init__()
 
-        # 定义单层全连接
+        # Define a single fully connected layer
         self.activation = nn.Tanh()
         self.fc = nn.Linear(input_size, output_size)
 
-        # 自定义参数初始化
-        nn.init.kaiming_uniform_(self.fc.weight, nonlinearity='relu')  # 使用Kaiming初始化
-        nn.init.zeros_(self.fc.bias)  # 将偏置初始化为0
+        # Custom parameter initialization
+        nn.init.kaiming_uniform_(self.fc.weight, nonlinearity='relu')  # Use Kaiming initialization
+        nn.init.zeros_(self.fc.bias)  # Initialize the bias to 0
 
     def forward(self, x):
         """
-        前向传播逻辑。
+        Forward propagation logic.
 
-        参数：
-        x (torch.Tensor): 输入张量。
+        Parameters:
+        x (torch.Tensor): Input tensor.
 
-        返回：
-        torch.Tensor: 模型输出。
+        Returns:
+        torch.Tensor: Model output.
         """
         x = self.fc(x)
         x = self.activation(x)
@@ -290,54 +290,55 @@ class FullyConnectedModel(nn.Module):
 
 def calculate_elementwise_lcm(list1, list2):
     """
-            计算两个张量之间每对元素的最小公倍数
-            :param: 1D PyTorch 张量
-            :param: 1D PyTorch 张量
-            :return: 一个 2D 张量，其中每个元素是 tensor1 和 tensor2 中对应元素的最小公倍数
-            """
-    # 确保两个张量是整型
-    # 将列表转换为 PyTorch 张量
+    Compute the least common multiple (LCM) for each pair of elements between two tensors.
+    :param: 1D PyTorch tensor
+    :param: 1D PyTorch tensor
+    :return: A 2D tensor where each element is the LCM of the corresponding elements in tensor1 and tensor2
+    """
+    # Ensure both tensors are of integer type
+    # Convert lists to PyTorch tensors
+
     tensor1 = torch.tensor(list1, dtype=torch.long)
     tensor2 = torch.tensor(list2, dtype=torch.long)
 
-    # 使用广播机制计算每对元素的 GCD
+    # Use broadcasting to compute the GCD for each pair of elements
     gcd = torch.gcd(tensor1[:, None], tensor2[None, :])
 
-    # 使用公式 LCM(a, b) = abs(a * b) // GCD(a, b)
+    # Use LCM(a, b) = abs(a * b) // GCD(a, b)
     lcm = torch.div((tensor1[:, None] * tensor2[None, :]).abs(), gcd, rounding_mode='trunc')
 
-    # 找到最小公倍数及其索引
-    min_lcm, flat_index = torch.min(lcm.flatten(), dim=0)  # 展平矩阵并找到最小值及其索引
-    min_i, min_j = divmod(flat_index.item(), lcm.size(1))  # 计算二维索引
+    # Find the least common multiple and its index
+    min_lcm, flat_index = torch.min(lcm.flatten(), dim=0)  # Flatten the matrix and find the minimum value and its index
+    min_i, min_j = divmod(flat_index.item(), lcm.size(1))  # Compute 2D indices
 
     return list1[min_i], list2[min_j], min_lcm.item()
 
 
 class AdaptiveEncoding:
     def __init__(self):
-        # 创建周期查找器对象 (k=2 表示寻找前 2 个最重要的周期)
+        # Create a period finder object (k=2 means finding the top 2 most significant periods)
         self.ad_finder = PeriodFinder(k=3)
-        # 创建循环向量生成器对象 (factor=2 表示生成的向量会按因子 2 缩放)
+        # Create a cyclic vector generator object (factor=2 means the generated vectors will be scaled by a factor of 2)
         self.ad_key = CyclicVectorGenerator(factor=1)
-        # 创建循环卷积对象并对归一化数据进行循环卷积
+        # Create a circular convolution object and perform circular convolution on the normalized data
         self.ad_circular_conv = CircularConvolution1()
 
     def encode_process(self, input_x, input_y):
-        # 数据预处理：将 processed_trip_dict 中的第一个和第二个轨迹数据归一化并转换为张量
+        # Data preprocessing: Normalize the first and second trajectory data in processed_trip_dict and convert them to tensors
         normalized_trip1 = torch.tensor(
-            np.array(Data_preprocessing.normalized(input_x), dtype=float))  # 第一个轨迹数据
+            np.array(Data_preprocessing.normalized(input_x), dtype=float))  # 1st trajectory data
         normalized_trip2 = torch.tensor(
-            np.array(Data_preprocessing.normalized(input_y), dtype=float))  # 第二个轨迹数据
+            np.array(Data_preprocessing.normalized(input_y), dtype=float))  # 2nd trajectory data
 
-        # 查找两个轨迹的主要周期
+        # Find the main periods of the two trajectories
         top_period1_ = self.ad_finder.find_periods(normalized_trip1)
         top_period2_ = self.ad_finder.find_periods(normalized_trip2)
         top_period1, top_period2, min_gcd = calculate_elementwise_lcm(top_period1_, top_period2_)
 
-        # 计算两个周期的最小公倍数并返回相应的周期和最小公倍数
+        # Compute the least common multiple (LCM) of the two periods and return the corresponding periods and the LCM
         top_period1, top_period2, min_gcd = calculate_elementwise_lcm(top_period1_, top_period2_)
 
-        # 根据最小周期生成两个关键向量
+        # Generate two key vectors based on the least common period
         key_vector, key_vector_whole = self.ad_key.generate_final_vector(length=len(normalized_trip1),
                                                                          period=int(min_gcd),
                                                                          num_vectors=2)
@@ -355,8 +356,8 @@ class PeriodAdaptation(nn.Module):
         self.activation = nn.Sigmoid()
 
     def forward(self, data):
-        device = self.fc1.weight.device  # 🔧 获取该层所在设备
-        data = data.to(device)  # ✅ 把输入放到同设备上
+        device = self.fc1.weight.device  # Get the device on which this layer is located
+        data = data.to(device)  # Move the input to the same device
         x = self.fc1(data)
         mean = self.activation(x)
         variance = self.r_mse(x, mean)
@@ -391,10 +392,10 @@ class PeriodAdaptationOutput(nn.Module):
 class ElementWiseProductLayer(nn.Module):
     def __init__(self, input_size, out_channel):
         super(ElementWiseProductLayer, self).__init__()
-        # 定义可训练的参数 weights, 大小与输入一致
+        # Define trainable parameters 'weights', with the same size as the input
         self.conv1 = nn.Conv1d(in_channels=1, out_channels=out_channel, kernel_size=1)
         self.gelu = nn.GELU()
-        self.dropout = nn.Dropout(p=0.1)  # 30% 随机丢弃
+        self.dropout = nn.Dropout(p=0.1)  # 30% ramdom drop
         self.conv2 = nn.Conv1d(in_channels=out_channel, out_channels=out_channel, kernel_size=1)
         self.linear2 = nn.Linear(input_size, input_size)
 

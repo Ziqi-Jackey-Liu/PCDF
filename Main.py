@@ -22,10 +22,10 @@ import Weather
 
 
 def set_seed(seed=42):
-    torch.manual_seed(seed)  # 固定 PyTorch 随机种子（CPU）
-    torch.cuda.manual_seed(seed)  # 固定 PyTorch 在 CUDA 设备上的随机种子
-    torch.cuda.manual_seed_all(seed)  # 如果使用多个 GPU，也固定所有的 CUDA 设备
-    np.random.seed(seed)  # 固定 NumPy 随机种子
+    torch.manual_seed(seed)  # Fix the PyTorch random seed (CPU)
+    torch.cuda.manual_seed(seed)  # Fix the PyTorch random seed on CUDA (GPU)
+    torch.cuda.manual_seed_all(seed)  # If using multiple GPUs, fix all CUDA devices
+    np.random.seed(seed)  # Fix the NumPy random seed
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     os.environ["PYTHONHASHSEED"] = str(seed)
@@ -39,7 +39,7 @@ processed_trip_dict_wea = Wea_data
 # processed_trip_dict_gas = Gas_data
 
 # Sol_data = Solar_energy.read('./Data/Solar_energy', 0, 20)
-# Sol_data_s = Sol_data[:Sol_data.shape[0] - Sol_data.shape[0] % 40, :]  # 确保行数为偶数
+# Sol_data_s = Sol_data[:Sol_data.shape[0] - Sol_data.shape[0] % 40, :]  # Ensure the number of rows is even
 # processed_trip_dict_sol = Sol_data_s.reshape(Sol_data_s.shape[0] // 40, 40, Sol_data_s.shape[1])
 
 # Ele_data = Electric.read('./Data/Electric/LD2011_2014.txt', 0, 12)
@@ -47,12 +47,12 @@ processed_trip_dict_wea = Wea_data
 # processed_trip_dict_ele = Ele_data_s.reshape(Ele_data_s.shape[0] // 40, 40, Ele_data_s.shape[1])
 
 # DC_data = DC_bike.read('./Data/DC_bike/20[1][2-7]*.csv', 48000, 10)
-# DC_data_s = DC_data[:DC_data.shape[0] - DC_data.shape[0] % 40, :]  # 确保行数为偶数
+# DC_data_s = DC_data[:DC_data.shape[0] - DC_data.shape[0] % 40, :]  # Ensure the number of rows is even
 # processed_trip_dict_dc = DC_data_s.reshape(DC_data_s.shape[0] // 40, 40, DC_data_s.shape[1])
 #
 # NYC_data = NYC_taxi.read('./Data/NYC_taxi', 250)
 # # _ = Result_test.data_test(NYC_data, row_index=40)
-# NYC_data_s = NYC_data[:NYC_data.shape[0] - NYC_data.shape[0] % 40, :]  # 确保行数为偶数
+# NYC_data_s = NYC_data[:NYC_data.shape[0] - NYC_data.shape[0] % 40, :]  # Ensure the number of rows is even
 # processed_trip_dict_nyc = NYC_data_s.reshape(NYC_data_s.shape[0] // 40, 40, NYC_data_s.shape[1])
 
 set_seed(1200)
@@ -83,13 +83,13 @@ for chanel_number in [5, 10, 20, 30, 40]:
     hhh_ch.append(hhh_t_means)
     print(1)
 
-# 远程服务器信息
+# remote server info
 server_user = "ZXL240007"
 server_host = "cs096621.utdallas.edu"
-server_path = "~/Documents/output.csv"  # 远程服务器存储 CSV 的路径
+server_path = "~/Documents/output.csv"  # path to save the CSV file on remote server
 
-# 生成 CSV 并保存在远程服务器
+# generate CSV and save it on remote server
 df = pd.DataFrame(zip(*hhh_t))
 df.to_csv(server_path, index=False, header=False)
-print(f"CSV 文件已保存在远程服务器: {server_path}")
+print(f"# The CSV file has been saved on the remote server: {server_path}")
 

@@ -253,13 +253,13 @@ class PointWhCoder(PointCoder):
     def decode(self, rel_codes):
         # print ('xyxy decoding')
         boxes = self.anchor
-        pixel_x = 2. / self.patch_count  # patch_count=in_size//stride 这里应该用2除而不是1除 得到pixel_x是两个patch中点的原本距离
+        pixel_x = 2. / self.patch_count  # patch_count = in_size // stride — Here, division by 2 should be used instead of 1 to get pixel_x, which represents the original distance between the centers of two patches
         wx, ww1, ww2 = self.weights
 
         dx = torch.nn.functional.tanh(rel_codes[:, :, 0] / wx) * pixel_x / 4 if self.tanh else rel_codes[:, :,
-                0] * pixel_x / wx  # 中心点不会偏移超过patch_len
+                0] * pixel_x / wx  # The center point will not shift more than patch_len
         dw1 = torch.nn.functional.relu(torch.nn.functional.tanh(rel_codes[:, :,
-                1] / ww1)) * pixel_x * self.deform_range + pixel_x  # 中心点左边长度在[stride,stride+1/4*stride]，右边同理
+                1] / ww1)) * pixel_x * self.deform_range + pixel_x  # The length to the left of the center point is within [stride, stride + 1/4 * stride], and similarly for the right side
         dw2 = torch.nn.functional.relu(
             torch.nn.functional.tanh(rel_codes[:, :, 2] / ww2)) * pixel_x * self.deform_range + pixel_x  #
         # dw =

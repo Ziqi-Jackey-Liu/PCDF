@@ -10,10 +10,10 @@ def read(file_path):
     df = df.fillna(0)
     data = df.to_numpy()
 
-    # 截取前 8750 列（8750 是 50 的倍数）
+    # truncating to 8750 columns (divisible by 50)
     data = data[:, :8750]  # shape: (50, 8750)
 
-    # 重塑为 (50, 50, 175)
+    # reshape to (50, 50, 175)
     reshaped_data = data.reshape(50, 50, -1)
     return reshaped_data
 
@@ -74,7 +74,7 @@ def get_data():
 
     result = {}
     for city in cities:
-        print(f"\n=== 正在获取城市: {city['name']} ===")
+        print(f"\n=== Fetching city now: {city['name']} ===")
         data = weather_info_obtain(
             longitude=city['lon'],
             latitude=city['lat'],
@@ -85,57 +85,57 @@ def get_data():
         if not data.empty and 'temp' in data.columns:
             result[city['name']] = data['temp']
         else:
-            print(f"城市 {city['name']} 无温度数据。")
+            print(f"City {city['name']} has no tempareture data.")
             result[city['name']] = None
-    # 将字典转为 DataFrame（列是城市，行是时间）
+    # convert dict to DataFrame (columns are cities, rows are time)
     temp_df = pd.DataFrame(result)
 
-    # 转置得到形状为 (50, T)
+    # transpose to get shape (50, T)
     temp_matrix = temp_df.T
     temp_matrix.to_csv('city_hourly_temperature.csv', index=True)# 即 temp_df.transpose()
     return temp_matrix
 
 def weather_info_obtain(longitude, latitude, time1, timezone='UTC', max_retries=5):
     """
-    根据给定的GPS坐标和起始时间，返回过去一年的逐小时天气数据。
+    Given GPS coordinates and a start time, return hourly weather data for the past year.
 
-    参数:
-        longitude: 经度 (float)
-        latitude: 纬度 (float)
-        time1: ['YYYY-MM-DD HH:MM:SS'] 格式的起始时间字符串列表
-        timezone: 时区 (默认 'UTC')
-        max_retries: 获取失败时的最大重试次数
+    Parameters:
+        longitude: Longitude (float)
+        latitude: Latitude (float)
+        time1: List of start time strings in ['YYYY-MM-DD HH:MM:SS'] format
+        timezone: Timezone (default 'UTC')
+        max_retries: Maximum number of retries on failure
 
-    返回:
-        DataFrame: 包含逐小时天气数据
+    Returns:
+        DataFrame: Contains hourly weather data
     """
     start_time = datetime.strptime(time1[0], '%Y-%m-%d %H:%M:%S')
     end_time = start_time + timedelta(days=365)
 
-    # 定义地点
+    # defined by latitude and longitude
     location = Point(latitude, longitude)
 
-    # 查找附近天气站
+    # search weather stations nearby
     stations = Stations().nearby(latitude, longitude).fetch(10)
 
     for station_id in stations.index:
         for attempt in range(max_retries + 1):
-            print(f"尝试第 {attempt + 1} 次：请求站点 {station_id} 的数据，时间范围 {start_time} 到 {end_time}...")
+            print(f"Try {attempt + 1} times: request station {station_id} data, from {start_time} to {end_time}...")
 
             try:
                 data_hourly = Hourly(station_id, start_time, end_time, timezone=timezone)
                 data = data_hourly.fetch()
 
                 if not data.empty:
-                    print(f"成功获取来自站点 {station_id} 的数据！")
+                    print(f"Successfully fetch data from {station_id} !")
                     return data
 
                 else:
-                    print(f"站点 {station_id} 无数据，尝试下一站点。")
-                    break  # 当前站点没有数据，换下一个
+                    print(f"Station {station_id} has no data, try next stattion in queue.")
+                    break
 
             except Exception as e:
-                print(f"获取数据时发生错误: {e}")
-                time.sleep(2 * (attempt + 1))  # 指数回退等待
-    print("未找到任何可用的数据。")
+                print(f"Error when fetching data: {e}")
+                time.sleep(2 * (attempt + 1))  # exponential backoff waiting time
+    print("Did not get any data from all stations.")
     return pd.DataFrame()

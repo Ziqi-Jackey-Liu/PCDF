@@ -6,35 +6,35 @@ import matplotlib.pyplot as plt
 
 def similar_test(data_new_12, period):
     """
-    计算数据的皮尔逊相关性矩阵，仅考虑能够完整分割的部分。
+    Calculate the Pearson correlation matrix of the data, considering only the fully divisible parts.
 
-    :param data_new_12: 输入数据（1D 数组或列表）
-    :param period: 分割周期的长度
-    :return: 皮尔逊相关性矩阵
+    :param data_new_12: Input data (1D array or list)
+    :param period: Length of the segmentation period
+    :return: Pearson correlation matrix
     """
-    # 确保 data_new_12 是一个 NumPy 数组
+    # Ensure data_new_12 is a NumPy array
     data_new_12 = np.array(data_new_12)
 
-    # 计算可以完整分割的长度
+    # calculate the length that can be fully divided
     valid_length = (len(data_new_12) // period) * period
 
-    # 截取可分割的部分
+    # truncate the data to the valid length
     data_new_12 = data_new_12[:valid_length]
 
-    # 分割数据为周期长度的子数组
+    # split the data into subarrays of length period
     cycles_new_12 = [data_new_12[i:i + period] for i in range(0, valid_length, period)]
 
-    # 初始化相关性矩阵
+    # initialize the correlation matrix
     num_cycles = len(cycles_new_12)
     results_new_12 = np.zeros((num_cycles, num_cycles))
 
-    # 计算皮尔逊相关性
+    # calculate the Pearson correlation coefficient
     for i in range(num_cycles):
         for j in range(num_cycles):
             if i != j:
                 results_new_12[i, j], _ = pearsonr(cycles_new_12[i], cycles_new_12[j])
             else:
-                results_new_12[i, j] = 1.0  # 自相关为 1
+                results_new_12[i, j] = 1.0  # self-correlation set to 1.0
 
     return results_new_12
 
@@ -76,13 +76,13 @@ def compute_m3(m1, m2):
 
 def gram_schmidt_list(X):
     """
-    对矩阵 X 进行 Gram-Schmidt 正交化，使其列向量正交。
+    Perform Gram-Schmidt orthogonalization on matrix X to make its column vectors orthogonal.
 
-    参数:
-    - X: 输入矩阵 (rows, cols)
+    Parameters:
+    - X: Input matrix (rows, cols)
 
-    返回:
-    - 正交化后的矩阵
+    Returns:
+    - Orthogonalized matrix
     """
     Q = np.zeros_like(X, dtype=float)
     for i in range(X.shape[1]):
@@ -94,16 +94,16 @@ def gram_schmidt_list(X):
 
 def gram_schmidt_line(X):
     """
-    对矩阵 X 进行 Gram-Schmidt 正交化，使其行向量正交。
+    Perform Gram-Schmidt orthogonalization on matrix X to make its row vectors orthogonal.
 
-    参数:
-    - X: 输入矩阵 (rows, cols)
+    Parameters:
+    - X: Input matrix (rows, cols)
 
-    返回:
-    - 正交化后的矩阵
+    Returns:
+    - Orthogonalized matrix
     """
     Q = np.zeros_like(X, dtype=float)
-    for i in range(X.shape[0]):  # 修改为按行处理
+    for i in range(X.shape[0]): # modify to process by row
         Q[i, :] = X[i, :]
         for j in range(i):
             Q[i, :] -= np.dot(Q[j, :], X[i, :]) / np.dot(Q[j, :], Q[j, :]) * Q[j, :]
@@ -112,21 +112,21 @@ def gram_schmidt_line(X):
 
 
 def generate_matrix_and_unit_vector(rows, cols):
-    # 生成随机矩阵，包含随机整数
+    # generate random metrix with random integers
     random_matrix = np.random.randint(-10, 10, (rows, cols)).astype(float)
 
-    # 使用QR分解获得正交矩阵
+    # use QR decomposition to get orthogonal matrix
     orthogonal_matrix = gram_schmidt_line(random_matrix)
     ortho_sum = np.matmul(orthogonal_matrix[0], orthogonal_matrix[2].T)
 
-    # 生成随机矩阵，元素在 [0,1) 之间
+    # generate random matrix with elements in [0,1)
     matrix = np.random.randint(1, 5, (rows, cols))
 
-    # 生成单位向量，方向随机
+    # generate random unit vector with random direction
     random_vector = np.random.rand(rows)
     vector_norm = np.linalg.norm(random_vector)
 
-    # 归一化向量以确保其为单位向量
+    # normalize the vector to ensure it is a unit vector
     unit_vector = random_vector / vector_norm if vector_norm != 0 else random_vector
 
     unit_sum = np.sum(np.square(unit_vector))
@@ -135,15 +135,15 @@ def generate_matrix_and_unit_vector(rows, cols):
 
 def data_test(data, row_index):
     if row_index is None:
-        row_index = 119  # 第120行 → 索引是119
+        row_index = 119  # row 120 the index is 119
     wave = data[row_index]
 
-    # 绘制波形图（折线图）
+    # Plot the waveform (line chart)
     plt.figure(figsize=(16, 6))
-    plt.plot(wave, linewidth=2)  # 不加marker，更光滑
+    plt.plot(wave, linewidth=2)  # don't add marker, more smooth
     plt.title(f'Waveform of Row {row_index + 1}')
-    plt.xlabel('Time Step')  # 或 Column Index
-    plt.ylabel('Amplitude')  # 可根据含义修改
+    plt.xlabel('Time Step')  # Column Index
+    plt.ylabel('Amplitude')  # modify by y data
     plt.grid(True)
     plt.tight_layout()
     plt.show()

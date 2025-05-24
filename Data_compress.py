@@ -3,27 +3,27 @@ import numpy as np
 
 
 def sampling(data, sample_rate=0.5, cycle_size=5):
-    # 分组并采样
+    # Group and sample
     num_cycles = (len(data) + cycle_size - 1) // cycle_size  # 周期数
     sampled_indices = []
 
     for cycle_idx in range(num_cycles):
-        # 获取当前周期的数据索引范围
+        # Get the index range of the current cycle's data
         start_idx = cycle_idx * cycle_size
         end_idx = min(start_idx + cycle_size, len(data))
         cycle_indices = np.arange(start_idx, end_idx)
 
-        # 按采样率随机采样
+        # Randomly sample according to the sampling rate
         num_samples = int(sample_rate * cycle_size)
         sampled = np.random.choice(cycle_indices, size=num_samples, replace=False)
 
-        # 添加到采样结果中
+        # Add to the sampling results
         sampled_indices.extend(sampled)
 
-    # 按时间顺序排序采样的索引
+    # Sort the sampled indices in chronological order
     sampled_indices.sort()
 
-    # 获取采样结果
+    # Retrieve the sampling results
     sampled_data = data[sampled_indices]
     return sampled_data
 
@@ -38,24 +38,25 @@ def fft_transform(signal):
     return fft_result
 
 def js_divergence(vector_1, vector_2):
-    # 步骤1：归一化处理（转为概率分布）
+    """Compute the Jensen-Shannon (JS) divergence between two probability distributions"""
+    # Step 1: Normalization (convert to a probability distribution)
     vector_1_prob = torch.nn.functional.softmax(vector_1, dim=-1)
     vector_2_prob = torch.nn.functional.softmax(vector_2, dim=-1)
     aligned_vector_2 = torch.nn.functional.interpolate(vector_2_prob.unsqueeze(0), size=vector_1_prob.size(1), mode="linear").squeeze(0)
-    """计算两个概率分布的JS散度"""
+
     p = vector_1_prob
     q = aligned_vector_2
-    m = 0.5 * (p + q)  # 平均分布
+    m = 0.5 * (p + q)  # Average distribution
     kl_p_m = torch.nn.functional.kl_div(m.log(), p, reduction='batchmean', log_target=True)
     kl_q_m = torch.nn.functional.kl_div(m.log(), q, reduction='batchmean', log_target=True)
     return 0.5 * (kl_p_m + kl_q_m)
 
 def lcm(a, b):
-    """计算两个数的最小公倍数"""
+    """Compute the least common multiple (LCM) of two numbers"""
     return abs(a * b) // torch.gcd(a, b)
 
 def lcm_of_vector(vector):
-    """计算向量中所有元素的最小公倍数"""
+    """Compute the least common multiple (LCM) of all elements in a vector"""
     result = vector[0]
     for element in vector[1:]:
         result = lcm(result, element)
@@ -78,22 +79,22 @@ def comparison_selection(data, altered_data, period):
     for cycle_idx in range(num_cycles):
         start_idx = cycle_idx * period
         end_idx = min(start_idx + period, len(data))
-        best_js_value = None  # 存储最优的 js_divergence 值
-        best_row = None  # 存储对应的 altered_data 行
+        best_js_value = None  # Save best js_divergence
+        best_row = None  # Save corresponding altered_data row
         for row_idx, row in enumerate(altered_data):
             cycle_indices = js_divergence(data[start_idx:end_idx], row[start_idx:end_idx])
-            # 比较最小值或最大值（这里默认寻找最大值）
+            # Compare minimum or maximum values (default is to find the maximum)
             if best_js_value is None or cycle_indices > best_js_value:
                 best_js_value = cycle_indices
-                best_row = row_idx  # 更新最优行数据
+                best_row = row_idx  # update best row index
         best_altered_data.append(altered_data[best_row, start_idx:end_idx])
     final_vector = torch.cat(best_altered_data)
     return final_vector
 
 def combination(vector1, vector2):
     interleaved_vector = torch.empty(len(vector1) + len(vector2), dtype=vector1.dtype)
-    interleaved_vector[0::2] = vector1  # 将 vector1 放在偶数位置
-    interleaved_vector[1::2] = vector2  # 将 vector2 放在奇数位置
+    interleaved_vector[0::2] = vector1  # place vector1 at the even indices 
+    interleaved_vector[1::2] = vector2  # Place vector2 at the odd indices
     return interleaved_vector
 
 def model_key_compress(input_1, input_2):
