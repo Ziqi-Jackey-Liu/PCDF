@@ -41,3 +41,18 @@ To reproduce the experiments:
 2. Modify relevant parameters in main.py according to the paper.
 3. Run the experiment with: python main.py
 4. The output will include the MSE and runtime of both the proposed and comparative methods.
+
+## 📊 Datasets
+
+We evaluate our method on the following publicly available multivariate time series datasets:
+
+- **NYC Taxi**
+- **DC Bike**
+- **Electricity Load Diagrams**
+- **Solar Energy**
+- **Gas Sensor Array Drift**
+- **Weather (Meteostat)**
+
+⚠️ Note: Some of the datasets exceed GitHub's file size limit and are not included in this repository.  
+Please download them from their official websites using the links provided in the paper or in the dataset section below.
+
