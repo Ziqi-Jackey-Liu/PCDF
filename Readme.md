@@ -21,6 +21,7 @@ You can install all dependencies via:
 
 ```bash
 pip install -r requirements.txt
+```
 
 ## 📁 Project Structure:
 PCDF/
