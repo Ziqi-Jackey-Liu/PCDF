@@ -84,9 +84,9 @@ for chanel_number in [5, 10, 20, 30, 40]:
     print(1)
 
 # remote server info
-server_user = "ZXL240007"
-server_host = "cs096621.utdallas.edu"
-server_path = "~/Documents/output.csv"  # path to save the CSV file on remote server
+server_user = "xxx"
+server_host = "xxx"
+server_path = "xxx"  # path to save the CSV file on remote server
 
 # generate CSV and save it on remote server
 df = pd.DataFrame(zip(*hhh_t))
