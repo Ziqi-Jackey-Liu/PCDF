@@ -25,7 +25,6 @@ pip install -r requirements.txt
 
 ## 📁 Project Structure:
 PCDF/
-│
 ├── Designed methods.py
 ├── Comparative methods.py
 ├── data/
