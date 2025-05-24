@@ -24,14 +24,16 @@ pip install -r requirements.txt
 ```
 
 ## 📁 Project Structure:
+
 PCDF/
-├── Designed methods.py
-├── Comparative methods.py
-├── data/
-├── main.py    
-└── Readme.md
+├── Designed methods.py # Our proposed compression-decompression methods
+├── Comparative methods.py # Baseline comparison methods
+├── data/ # Input datasets
+├── main.py # Entry point for running experiments
+└── README.md # Project documentation
 
 ## 🚀 How to Run
+
 To reproduce the experiments:
 1. Select and prepare your dataset (place it under the data/ directory).
 2. Modify relevant parameters in main.py according to the paper.
